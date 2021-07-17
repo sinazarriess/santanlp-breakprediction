@@ -8,12 +8,12 @@ import numpy as np
 from random import sample
 from tqdm import tqdm
 import pandas as pd
-
+import time
 
 
 class TextCrumble(Dataset):
 
-    def __init__(self,tokenizer,n=200):
+    def __init__(self,tokenizer,n=None,window=254):
 
         self.nbreaks = n
         self.tokenizer = tokenizer
@@ -23,6 +23,7 @@ class TextCrumble(Dataset):
         self.breakpoints = []
         self.tokenized = []
         self.cls, self.sep = tokenizer.convert_tokens_to_ids(["[CLS]", "[SEP]"])
+        self.window = window
 
     def __len__(self):
         #return len(self.paragraphs)
@@ -30,8 +31,9 @@ class TextCrumble(Dataset):
 
     def __getitem__(self,index):
 
+        label = self.breakpoints[index] in self.breaks_pos
         left,right = self.get_pair_even(self.breakpoints[index])
-        return self.pair_to_tensor(left,right)
+        return self.pair_to_tensor(self.breakpoints[index],left,right,label)
 
     def read(self,textfile):
 
@@ -44,23 +46,25 @@ class TextCrumble(Dataset):
             if "BREAK" in sent:
                 self.breaks_pos.append(len(self.paragraphs))
             else:
-                negatives.append(len(self.paragraphs))
                 t = tokenizer.tokenize(sent)
                 self.tokenized.append(t)
                 self.paragraphs.append(tokenizer.convert_tokens_to_ids(t))
 
-        self.breaks_neg = sample(negatives,self.nbreaks-len(self.breaks_pos))
-        self.breakpoints = self.breaks_pos + self.breaks_neg
+        self.breaks_neg = [i for i in range(len(self.paragraphs)) if not i in self.breaks_pos]
+        if self.nbreaks:
+            self.breaks_neg = sample(self.breaks_neg,self.nbreaks-len(self.breaks_pos))
+        #self.breakpoints = self.breaks_pos + self.breaks_neg
+        self.breakpoints = range(0,len(self.paragraphs))
 
     def get_pair_even(self,index):
 
         left_index = index-1
         left = []
 
-        while (left_index > -1) and (len(left) < 254):
+        while (left_index > -1) and (len(left) < self.window):
 
             this_left = self.paragraphs[left_index]
-            len_trunc = 254-len(left)
+            len_trunc = self.window-len(left)
 
             if len(this_left) > len_trunc:
                 this_left = this_left[-len_trunc:]
@@ -71,10 +75,10 @@ class TextCrumble(Dataset):
         right_index = index
         right = []
 
-        while (right_index < len(self.paragraphs)) and (len(right) < 254):
+        while (right_index < len(self.paragraphs)) and (len(right) < self.window):
 
             this_right = self.paragraphs[right_index]
-            len_trunc = 254-len(right)
+            len_trunc = self.window-len(right)
 
             if len(this_right) > len_trunc:
                 this_right = this_right[:len_trunc]
@@ -82,14 +86,14 @@ class TextCrumble(Dataset):
             right = right + this_right
             right_index += 1
 
-        if len(left) < 254:
-            left = [0]*(254-len(left)) + left
-        if len(right) < 254:
-            right = right + [0]*(254-len(right))
+        if len(left) < self.window:
+            left = [0]*(self.window-len(left)) + left
+        if len(right) < self.window:
+            right = right + [0]*(self.window-len(right))
 
         return(left,right)
 
-    def pair_to_tensor(self,toks1,toks2):
+    def pair_to_tensor(self,itemindex,toks1,toks2,itemlabel):
 
         ids1 = [self.cls] + toks1 + [self.sep]
         ids2 = toks2 + [self.sep]
@@ -104,24 +108,28 @@ class TextCrumble(Dataset):
 
         #print(len(indexed_tokens),len(segments_ids),len(attention_masks))
         #return indexed_tokens,segments_ids#,attention_masks
-        return tokens_tensor,segments_tensors,attention_tensor
+        return torch.tensor(itemindex),tokens_tensor,segments_tensors,attention_tensor,torch.tensor(itemlabel)
 
 
 
 def process_crumble(crumble,textloader,bert):
 
     predicted_breaks = []
-    for (t,s,a) in textloader:
+    for (ilist,t,s,a,llist) in textloader:
     #print("final",len(t),len(s))#,len(a))
     #print(t.shape,s.shape)
     #model.eval()
         pred = model(t, token_type_ids=s, attention_mask=a)
-        pred = np.array(torch.argmax(pred.logits,dim=1))
+        predlabel = np.array(torch.argmax(pred.logits,dim=1))
+        softmax = torch.nn.Softmax(dim=1)
+        predprob = np.array(softmax(pred))
+        #pb = list(np.where(pred == 1)[0])
 
-        pb = list(np.where(pred == 1)[0])
-        pb_batch = [i+batch_i for i in pb]
-        predicted_breaks += [crumble.breakpoints[i] for i in pb_batch]
-        break
+        pb_batch = list(np.array(ilist))
+        pb_label = list(np.array(llist))
+
+        predicted_breaks += [(pb_batch[i],pb_label[i],predlabel[i],predprob[i],crumble.paragraphs[pb_batch[i]]) for i in pb]
+        #break
 
     return predicted_breaks
 
@@ -130,23 +138,28 @@ if __name__ == '__main__':
 
     batch_i = 0
     breaks_table = []
+    #nbreaks = 200
+    nbreaks = None
 
     tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-uncased')
     model = transformers.BertForNextSentencePrediction.from_pretrained('bert-base-uncased')
     model.eval()
 
-    #for fi in tqdm(range(1,301)):
-    for fi in tqdm(range(1,3)):
-        t1 = TextCrumble(tokenizer)
+    for fi in range(1,301):
+    #for fi in tqdm(range(1,3)):
+        t1 = TextCrumble(tokenizer,n=nbreaks)
         fname = "../santanlp-corpus/corpus1/test/{0:0=3d}.txt".format(fi)
         #print(fname)
         t1.read(fname)
-        loader = DataLoader(t1,batch_size=50,shuffle=True)
+        loader = DataLoader(t1,batch_size=100,shuffle=False)
         preds = process_crumble(t1,loader,model)
         #print(preds)
-        breaks_table.append((fname,t1.breaks_pos,preds))
+        if nbreaks:
+            breaks_table.append((fname,t1.breaks_pos,t1.breaks_neg,preds))
+        else:
+            breaks_table.append((fname,t1.breaks_pos,[],preds))
 
 
-
-    bdf = pd.DataFrame(breaks_table,columns=["text_id","breaks","predictions"])
-    bdf.to_csv("predictions.csv")
+    bdf = pd.DataFrame(breaks_table,columns=["text_id","breaks_pos","breaks_neg","predictions"])
+    #bdf.to_csv("predictions_200breaks_nofinetuning_lr254_{0:.0f}.csv".format(time.time()))
+    bdf.to_csv("predictions_allbreaks_nofinetuning_lr254_{0:.0f}.csv".format(time.time()))
