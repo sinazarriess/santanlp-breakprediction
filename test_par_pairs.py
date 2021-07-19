@@ -145,8 +145,8 @@ if __name__ == '__main__':
     model = transformers.BertForNextSentencePrediction.from_pretrained('bert-base-uncased')
     model.eval()
 
-    for fi in range(1,301):
-    #for fi in tqdm(range(1,3)):
+    #for fi in range(1,301):
+    for fi in tqdm(range(1,3)):
         t1 = TextCrumble(tokenizer,n=nbreaks)
         fname = "../santanlp-corpus/corpus1/test/{0:0=3d}.txt".format(fi)
         #print(fname)
