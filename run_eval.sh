@@ -1,0 +1,17 @@
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/06_Chekhov_An+Avenger.txt --out results/corpus2/test/06_Chekhov_An+Avenger.txt
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/15_Kipling_How+the+leopard+got+his+spots.txt --out results/corpus2/test/15_Kipling_How+the+leopard+got+his+spots.txt
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/14_Kipling_Beyond+the+Pale.txt --out results/corpus2/test/14_Kipling_Beyond+the+Pale.txt
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/01_Aesop_The+Wolf+and+the+Lamb.txt --out results/corpus2/test/01_Aesop_The+Wolf+and+the+Lamb.txt
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/10_Grimm_Die_drei_Federn_eng.txt --out results/corpus2/test/10_Grimm_Die_drei_Federn_eng.txt
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/02_Andersen_The+Elf+of+the+Rose.txt --out results/corpus2/test/02_Andersen_The+Elf+of+the+Rose.txt
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/17_Lagerloef_Among+the+Climbing+Roses.txt --out results/corpus2/test/17_Lagerloef_Among+the+Climbing+Roses.txt
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/13_Hemingway_Hills+Like+White+Elephants.txt --out results/corpus2/test/13_Hemingway_Hills+Like+White+Elephants.txt
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/16_Kleist_Improbable+Veracities.txt --out results/corpus2/test/16_Kleist_Improbable+Veracities.txt
+#python run_eval.py --in ../santanlp-corpus/corpus2/test/18_Poe_The+Cask+of+Amontillado.txt --out results/corpus2/test/18_Poe_The+Cask+of+Amontillado.txt
+python run_eval.py --in ../santanlp-corpus/corpus2/test/03_Andersen_The+Top+and+Ball.txt --out results/corpus2/test/03_Andersen_The+Top+and+Ball.txt
+python run_eval.py --in ../santanlp-corpus/corpus2/test/09_Dickens_The+Child+s+Story.txt --out results/corpus2/test/09_Dickens_The+Child+s+Story.txt
+python run_eval.py --in ../santanlp-corpus/corpus2/test/20_Woolf_A+Haunted+House.txt --out results/corpus2/test/20_Woolf_A+Haunted+House.txt
+python run_eval.py --in ../santanlp-corpus/corpus2/test/19_Shelley_Frankenstein+or+The+Modern+Prometheus.txt --out results/corpus2/test/19_Shelley_Frankenstein+or+The+Modern+Prometheus.txt
+python run_eval.py --in ../santanlp-corpus/corpus2/test/05_Calvino_If+on+a+Winter+s+Night+a+Traveller.short.txt --out results/corpus2/test/05_Calvino_If+on+a+Winter+s+Night+a+Traveller.short.txt
+python run_eval.py --in ../santanlp-corpus/corpus2/test/12_Hebel_The_Cured_Patient.txt --out results/corpus2/test/12_Hebel_The_Cured_Patient.txt
+python run_eval.py --in ../santanlp-corpus/corpus2/test/11_Hebel_The+Cheap+Meal.txt --out results/corpus2/test/11_Hebel_The+Cheap+Meal.txt

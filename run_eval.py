@@ -18,6 +18,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
 
     parser.add_argument('--in', dest='inputfile')
+    parser.add_argument('--out', dest='outputfile')
     #parser.add_argument('--context', dest='context', type=int, default=254)
 
     args = parser.parse_args()
@@ -35,28 +36,27 @@ if __name__ == '__main__':
     t1 = TextCrumble(tokenizer,n=nbreaks,window=254)
     fname = args.inputfile
     t1.read(fname)
-    loader = DataLoader(t1,batch_size=100,shuffle=False)
+    loader = DataLoader(t1,batch_size=10,shuffle=False)
     preds = process_crumble(t1,loader,model)
 
     bdf = pd.DataFrame(preds,columns=["sent_id","gold_label","pred_label","prob","sent"])
-    bdf.to_csv(args.inputfile+".noft_lr254.csv")
-    
+    bdf.to_csv(args.outputfile+".noft_lr254.csv")
+
     t1 = TextCrumble(tokenizer,n=nbreaks,window=154)
     fname = args.inputfile
     t1.read(fname)
-    loader = DataLoader(t1,batch_size=100,shuffle=False)
+    loader = DataLoader(t1,batch_size=10,shuffle=False)
     preds = process_crumble(t1,loader,model)
 
     bdf = pd.DataFrame(preds,columns=["sent_id","gold_label","pred_label","prob","sent"])
-    bdf.to_csv(args.inputfile+".noft_lr154.csv")
+    bdf.to_csv(args.outputfile+".noft_lr154.csv")
 
-    
+
     t1 = TextCrumble(tokenizer,n=nbreaks,window=54)
     fname = args.inputfile
     t1.read(fname)
-    loader = DataLoader(t1,batch_size=100,shuffle=False)
+    loader = DataLoader(t1,batch_size=10,shuffle=False)
     preds = process_crumble(t1,loader,model)
 
     bdf = pd.DataFrame(preds,columns=["sent_id","gold_label","pred_label","prob","sent"])
-    bdf.to_csv(args.inputfile+".noft_lr54.csv")
-
+    bdf.to_csv(args.outputfile+".noft_lr54.csv")

@@ -46,9 +46,9 @@ class TextCrumble(Dataset):
             if "BREAK" in sent:
                 self.breaks_pos.append(len(self.paragraphs))
             else:
-                t = tokenizer.tokenize(sent)
+                t = self.tokenizer.tokenize(sent)
                 self.tokenized.append(t)
-                self.paragraphs.append(tokenizer.convert_tokens_to_ids(t))
+                self.paragraphs.append(self.tokenizer.convert_tokens_to_ids(t))
 
         self.breaks_neg = [i for i in range(len(self.paragraphs)) if not i in self.breaks_pos]
         if self.nbreaks:
@@ -119,16 +119,16 @@ def process_crumble(crumble,textloader,bert):
     #print("final",len(t),len(s))#,len(a))
     #print(t.shape,s.shape)
     #model.eval()
-        pred = model(t, token_type_ids=s, attention_mask=a)
+        pred = bert(t, token_type_ids=s, attention_mask=a)
         predlabel = np.array(torch.argmax(pred.logits,dim=1))
         softmax = torch.nn.Softmax(dim=1)
-        predprob = np.array(softmax(pred))
+        predprob = softmax(pred[0]).detach().numpy()
         #pb = list(np.where(pred == 1)[0])
 
         pb_batch = list(np.array(ilist))
         pb_label = list(np.array(llist))
 
-        predicted_breaks += [(pb_batch[i],pb_label[i],predlabel[i],predprob[i],crumble.paragraphs[pb_batch[i]]) for i in pb]
+        predicted_breaks += [(pb_batch[i],pb_label[i],predlabel[i],predprob[i],crumble.tokenized[pb_batch[i]]) for i in range(len(pb_batch))]
         #break
 
     return predicted_breaks
