@@ -23,4 +23,6 @@ echo -e "\nYou need to copy the token from the logfile of this job."
 
 # the following seems to be necessary to avoid permission # problems with trying to write to /run :
 export XDG_RUNTIME_DIR=""
-jupyter notebook --no-browser --port=${port} --ip='*' date
+jupyter notebook --no-browser --port=${port} --ip='*'
+
+date
