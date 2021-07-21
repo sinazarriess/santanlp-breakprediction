@@ -12,7 +12,7 @@ Was gibt es schon?
     * Detecting Scenes in Fiction: A new Segmentation Task, https://aclanthology.org/2021.eacl-main.276/
 
 - Daten zum Evaluieren und Rumspielen mit narrativen Ebenen: https://github.com/nilsreiter/santanlp-corpus
-    * corpus1 enthält lit. Texte, die zufällig geshuffelt wurden, die "<BREAK>"-tags markieren die Textgrenzen
+    * corpus1 enthält lit. Texte, die zufällig geshuffelt wurden, die "BREAK"-tags markieren die Textgrenzen
     * corpus2-4 enthält gekürzte Originaltexte ohne breaks (für die wir aber Annotationen haben)
 
 - Skripte zum Testen der next sentence prediction auf dem santanlp-corpus:
