@@ -1,6 +1,6 @@
 
-# Projekt: Finetuning BERT's next-sentence prediction for narrative level detection
-# @Judith
+## Projekt: Finetuning BERT's next-sentence prediction for narrative level detection
+## @Judith
 
 Was gibt es schon?
 
