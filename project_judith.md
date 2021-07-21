@@ -34,4 +34,4 @@ Was wäre gut zu haben?
 - die richtigen annotierten Daten zu narrativen Ebenen sind noch in einem etwas komplizierten Format:
     * https://github.com/SharedTasksInTheDH/phase-1-round-2-test-corpus, (SANTA1-7)
     * ein Tool, mit dem man sich die Daten anschauen kann: https://github.com/nilsreiter/CorefAnnotator/
- ... das brauchst du wahrscheinlich erstmal nicht
+    * die eval auf diesen Daten können wir dann nochmal besprechen, das brauchst du wahrscheinlich erstmal nicht
