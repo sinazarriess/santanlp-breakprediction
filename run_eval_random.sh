@@ -8,7 +8,7 @@ export CUDA_HOME=/media/compute/vol/cuda/10.1
 # activate conda env with tensorflow:
 source /media/compute/homes/szarriess/anaconda3/bin/activate torchenv
 
-python run_eval.py --in ../santanlp-corpus/corpus1/test/289.txt --out results/corpus1/test/289.txt
+#python run_eval.py --in ../santanlp-corpus/corpus1/test/289.txt --out results/corpus1/test/289.txt
 python run_eval.py --in ../santanlp-corpus/corpus1/test/262.txt --out results/corpus1/test/262.txt
 python run_eval.py --in ../santanlp-corpus/corpus1/test/276.txt --out results/corpus1/test/276.txt
 python run_eval.py --in ../santanlp-corpus/corpus1/test/060.txt --out results/corpus1/test/060.txt
@@ -307,4 +307,4 @@ python run_eval.py --in ../santanlp-corpus/corpus1/test/086.txt --out results/co
 python run_eval.py --in ../santanlp-corpus/corpus1/test/253.txt --out results/corpus1/test/253.txt
 python run_eval.py --in ../santanlp-corpus/corpus1/test/247.txt --out results/corpus1/test/247.txt
 python run_eval.py --in ../santanlp-corpus/corpus1/test/290.txt --out results/corpus1/test/290.txt
-python run_eval.py --in ../santanlp-corpus/corpus1/test/284.txt --out results/corpus1/test/284.txt
+#python run_eval.py --in ../santanlp-corpus/corpus1/test/284.txt --out results/corpus1/test/284.txt

@@ -112,17 +112,20 @@ class TextCrumble(Dataset):
 
 
 
-def process_crumble(crumble,textloader,bert):
+def process_crumble(crumble,textloader,bert,device="cpu"):
 
     predicted_breaks = []
     for (ilist,t,s,a,llist) in textloader:
     #print("final",len(t),len(s))#,len(a))
     #print(t.shape,s.shape)
     #model.eval()
+        t = t.to(device)
+        s = s.to(device)
+        a = a.to(device)
         pred = bert(t, token_type_ids=s, attention_mask=a)
-        predlabel = np.array(torch.argmax(pred.logits,dim=1))
+        predlabel = np.array(torch.argmax(pred.logits,dim=1).cpu())
         softmax = torch.nn.Softmax(dim=1)
-        predprob = softmax(pred[0]).detach().numpy()
+        predprob = softmax(pred[0]).detach().cpu().numpy()
         #pb = list(np.where(pred == 1)[0])
 
         pb_batch = list(np.array(ilist))

@@ -29,15 +29,20 @@ if __name__ == '__main__':
     #nbreaks = 200
     nbreaks = None
 
+    print("cuda",torch.cuda.is_available())
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print("device",device)
+
     tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-uncased')
     model = transformers.BertForNextSentencePrediction.from_pretrained('bert-base-uncased')
+    model = model.to(device)
     model.eval()
 
     t1 = TextCrumble(tokenizer,n=nbreaks,window=254)
     fname = args.inputfile
     t1.read(fname)
     loader = DataLoader(t1,batch_size=10,shuffle=False)
-    preds = process_crumble(t1,loader,model)
+    preds = process_crumble(t1,loader,model,device=device)
 
     bdf = pd.DataFrame(preds,columns=["sent_id","gold_label","pred_label","prob","sent"])
     bdf.to_csv(args.outputfile+".noft_lr254.csv")
@@ -46,7 +51,7 @@ if __name__ == '__main__':
     fname = args.inputfile
     t1.read(fname)
     loader = DataLoader(t1,batch_size=10,shuffle=False)
-    preds = process_crumble(t1,loader,model)
+    preds = process_crumble(t1,loader,model,device=device)
 
     bdf = pd.DataFrame(preds,columns=["sent_id","gold_label","pred_label","prob","sent"])
     bdf.to_csv(args.outputfile+".noft_lr154.csv")
@@ -56,7 +61,7 @@ if __name__ == '__main__':
     fname = args.inputfile
     t1.read(fname)
     loader = DataLoader(t1,batch_size=10,shuffle=False)
-    preds = process_crumble(t1,loader,model)
+    preds = process_crumble(t1,loader,model,device=device)
 
     bdf = pd.DataFrame(preds,columns=["sent_id","gold_label","pred_label","prob","sent"])
     bdf.to_csv(args.outputfile+".noft_lr54.csv")
