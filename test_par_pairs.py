@@ -151,7 +151,8 @@ if __name__ == '__main__':
         fname = "../santanlp-corpus/corpus1/test/{0:0=3d}.txt".format(fi)
         #print(fname)
         t1.read(fname)
-        loader = DataLoader(t1,batch_size=100,shuffle=False)
+        loader = DataLoader(t1,batch_size=10,shuffle=False)
+        #loader = DataLoader(t1,batch_size=100,shuffle=False)
         preds = process_crumble(t1,loader,model)
         #print(preds)
         if nbreaks:
