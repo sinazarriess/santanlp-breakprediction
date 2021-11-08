@@ -612,8 +612,8 @@ def test_model():
 ############# das Programm ausführen ############
 
 #### Daten laden 
-path_train= "corpus1/train" 
-path_test= "corpus1/test" 
+path_train= "../../santanlp-corpus/corpus1/train" 
+path_test= "../../santanlp-corpus/corpus1/test" 
 
 files_train = glob.glob(path_train + '/*.txt')
 files_test = glob.glob(path_test + '/*.txt')
