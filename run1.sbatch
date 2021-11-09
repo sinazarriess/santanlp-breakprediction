@@ -2,7 +2,7 @@
 
 #SBATCH --mail-user=szarriess@techfak.uni-bielefeld.de
 #SBATCH --mail-type=END
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 #SBATCH --partition=gpu
 #SBATCH --time=0:30:00
 

@@ -519,7 +519,7 @@ def create_progress_bar():
   return progress_bar
 
 
-def train_model():
+def train_model(modelpath):
   """
   Trainiert das Modell und berechnet den durchschnittlichen Trainingsloss 
   pro Epoche.
@@ -555,7 +555,8 @@ def train_model():
     print("Epoche", epoch_count)
     print("Durchschnittlicher Training Loss: ",train_loss)  
 
-    model.save_pretrained("./finetuned_models/ae_v1")
+    model.save_pretrained(modelpath)
+    #model.save_pretrained("./finetuned_models/lr254_v1")
 
 def load_metrics():
   """
@@ -627,13 +628,14 @@ sents_test = load_test_data()
 #### Datasampling: 1) oder 2) (das jeweils andere dann auskommentieren)
 print("Datasampling...")
 ## 1) Daten auf Absatz-Ebene samplen (d.h. ganze Absätze, ohne WINDOW_SIZE, maximal 500 (wegen BERT))
-sents_train= sents_train[:-1] 
-sents_test= sents_test[:-1]
-sample_paragraph_level()
+#sents_train= sents_train[:-1] 
+#sents_test= sents_test[:-1]
+#sample_paragraph_level()
 
 ## 2) Daten auf Wort-Ebene samplen (gegeben eine WINDOW_SIZE):
-#WINDOW_SIZE = 250
-#sample_word_level()
+WINDOW_SIZE = 154
+model_path_out = "./finetuned_models/lr154_v1"
+sample_word_level()
 
 
 #### Daten ausbalancieren:  1) oder 2) (das jeweils andere dann auskommentieren)
@@ -673,14 +675,14 @@ device
 print("Device:", device)
 
 #### das Modell trainieren:
-train_model()
+train_model(model_path_out)
 
 #### das Modell testen/evaluieren:
-test_model()
+#test_model()
 
 #################################
 print("-------------------------")
 print("BATCH_SIZE:", BATCH_SIZE)
-#print("N_EPOCHS:", N_EPOCHS)
+print("N_EPOCHS:", N_EPOCHS)
 print("WINDOW_SIZE:", WINDOW_SIZE)
 

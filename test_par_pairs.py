@@ -38,6 +38,7 @@ class TextCrumble(Dataset):
     def read(self,textfile):
 
         l = open(textfile,"r").readlines()
+        l = [s.replace("[...]","") for s in l]
         l = [s for s in l if not ((len(s.strip()) == 0) or ("THE END" in s))]
         negatives = []
 

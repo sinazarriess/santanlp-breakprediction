@@ -19,6 +19,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--in', dest='inputfile')
     parser.add_argument('--out', dest='outputfile')
+    parser.add_argument('--model', dest='model',default="pretrained")
     #parser.add_argument('--context', dest='context', type=int, default=254)
 
     args = parser.parse_args()
@@ -34,7 +35,14 @@ if __name__ == '__main__':
     print("device",device)
 
     tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-uncased')
-    model = transformers.BertForNextSentencePrediction.from_pretrained('bert-base-uncased')
+
+
+    print("model: ",args.model)
+    if args.model == "pretrained":
+        model = transformers.BertForNextSentencePrediction.from_pretrained('bert-base-uncased')
+    else:
+        model = transformers.BertForNextSentencePrediction.from_pretrained(args.model)
+
     model = model.to(device)
     model.eval()
 
