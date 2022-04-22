@@ -1,0 +1,56 @@
+============================================================================ 
+LREC 2022 Reviews for Submission #806
+============================================================================ 
+
+Title: Exploring Text Recombination for Automatic Narrative Level Detection
+Authors: Nils Reiter, Judith Sieker, Svenja Guhr, Evelyn Gius and Sina Zarrieß
+
+
+============================================================================
+                            REVIEWER #1
+============================================================================
+
+Detailed Comments
+---------------------------------------------------------------------------
+The paper presents an approach to the detection of narrative boundaries using artificially created training data by means of recombining narrative texts. This approach aims to address the problem of data sparseness for the task. The paper demonstrates the usefulness of an artificially created training set through segmentation experiments with BERT. Bert’s next sentence prediction head is used to detect boundaries between narratives. While the results remain modest, they clearly indicate that fine-tuning the model on the artificially created training corpus improves performance on human-annotated test data. 
+
+
+Overall, I think the experiments presented in this paper are sound and provide useful insights for the task of narrative level detection. In particular, the paper is a nice illustration of how artificial data can be used for scenarios in which very little human-annotated data is available and human annotation is difficult to perform. In addition, the paper is well-written, offers clear explanations, and is easy to follow. I'd be happy to see it accepted.
+
+I do have two suggestions that could improve the paper:
+
+> I wonder whether a simpler, less computationally expensive model could achieve similar performance. I would have appreciated a comparison to a baseline model to get insights into whether a contextualized model has an advantage over simpler models (perhaps based on lexical comparisons or using static embeddings). 
+> I really appreciated the critical reflection about the complexity of the annotation task and I think it was quite convincing. However, I was a bit surprised by the argument that “annotations of narrative structures depend on concentration, memory, and attention”. Isn’t this true for many annotation tasks? Annotating complex linguistic phenomena (e.g. syntactic analysis) also requires concentration and training. I am not sure if the complexity is what sets it apart from other tasks. Perhaps this could be reframed or explained a bit differently.
+---------------------------------------------------------------------------
+
+
+
+============================================================================
+                            REVIEWER #2
+============================================================================
+
+Detailed Comments
+---------------------------------------------------------------------------
+The paper is very well written, it contains a good introduction to the topic and detailed background on the analysis of narrative levels detection. The approach to the tasks of automatically detect narrative levels are well described and even if not resolutive the outcomes of the experiments are thoroughly evaluated. 
+
+I suggest a few corrections to the English text, although it is int he complex very well written:
+- no capital letter after colon
+- cliff hanger > cliffhanger (as a technical term it is written without a space)
+- post hoc > use italics for non english words.
+
+Section 8 at the end should contain references on language resources (not ressources) but contain none. Did you just forget to comment it out?
+---------------------------------------------------------------------------
+
+
+
+============================================================================
+                            REVIEWER #3
+============================================================================
+
+Detailed Comments
+---------------------------------------------------------------------------
+The paper illustrates an innovative approach for detecting narrative boundaries using a data augmentation method, focusing on text segmentations (rather than labelling). The approach, based on BERT, was conceived to address the problem of data sparseness. The experiments illustrated in the paper are sound and provide convincing evidence demonstrating the role of artificial data for the specific task. The proposed approach is clearly described and achieved results are carefully evaluated. The paper is very well written and clearly organized. 
+
+For the final version of the paper, I would suggest to illustrate in more detail the task of detecting narrative boundaries: the authors claim that “narrative levels in long text constitute a challenging phenomenon for state-of-the-art NLP models”. This is a kind of challenging task the reader might not be familiar with.
+---------------------------------------------------------------------------
+
