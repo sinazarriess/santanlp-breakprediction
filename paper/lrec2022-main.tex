@@ -1,0 +1,586 @@
+% LREC 2022 KC Example; 
+% LREC Is now using templates similar to the ACL ones. 
+\documentclass[10pt, a4paper]{article}
+\usepackage{lrec2022} % this is the new LREC2022 Style
+\usepackage{multibib}
+\newcites{languageresource}{Language Resources}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{soul}
+\usepackage{siunitx}
+
+% for eps graphics
+%%% References and Labels
+%%% Reference labels without a punctuation 
+% courtesy of Marc Schulder , uni Hamburg ****************
+\usepackage{titlesec}
+%\titleformat{\section}{\normalfont\large\bf\center}{\thesection.}{1em}{}
+\titleformat{\section}{\normalfont\large\bfseries\center}{\thesection.}{1em}{}
+\titleformat{\subsection}{\normalfont\SmallTitleFont\bfseries\raggedright}{\thesubsection.}{1em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries\raggedright}{\thesubsubsection.}{1em}{}
+\renewcommand\thesection{\arabic{section}}
+\renewcommand\thesubsection{\thesection.\arabic{subsection}}
+\renewcommand\thesubsubsection{\thesubsection.\arabic{subsubsection}}
+%  ed 
+
+% LREC
+\usepackage{epstopdf}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{xstring}
+\usepackage{color}
+
+% our packages
+\usepackage{latexsym}
+\usepackage{booktabs}
+\usepackage{multirow,rotating}
+\usepackage{tikz}
+\usepackage[T1]{fontenc}
+\usepackage{csquotes}
+\usepackage{graphicx}
+
+\usepackage{microtype}
+\usepackage{todonotes}
+\usepackage{outlines}
+\usepackage{caption}
+\usetikzlibrary{calc}
+
+\newcommand{\secref}[1]{\StrSubstitute{\getrefnumber{#1}}{.}{ }}
+
+\newcommand{\sina}[1]{\textit{\textcolor{blue}{sina: #1}}}
+\newcommand{\nils}[1]{\textit{\textcolor{violet}{nils: #1}}}
+
+%Annotating old or synthesizing new texts?\\
+%Exploring A Generative Resource Creation Workflow for Narrative Level Detection\\
+%Training Data Induction for Narrative Level Detection\\
+%\title{
+%Exploring the Impact of Generative Creation/Approximation? of Annotated Resources on Automatic Narrative Level Detection}
+
+\title{Exploring Text Recombination for Automatic Narrative Level Detection}
+
+\name{\noindent Nils Reiter$^\spadesuit$, Judith Sieker$^\diamondsuit$, Svenja Guhr$^\clubsuit$, Evelyn Gius$^\clubsuit$, Sina Zarrieß$^\diamondsuit$} 
+
+\address{
+    $^\clubsuit$Technical University of Darmstadt, Residenzschloss, Marktplatz 15, 64283 Darmstadt %, evelyn.gius@tu-darmstadt.de
+    \\
+    $^\spadesuit$University of Cologne, Albertus-Magnus-Platz, 50931 Cologne, nils.reiter@uni-koeln.de \\
+    $^\diamondsuit$University of Bielefeld,  Universitätstr. 25, 33615 Bielefeld, sina.zarriess@uni-bielefeld.de}
+
+
+
+
+\abstract{
+Automatizing the process of understanding the global narrative structure of long texts and stories is still a major challenge for state-of-the-art natural language understanding systems, particularly because annotated data is scarce and existing annotation workflows do not scale well to the annotation of complex narrative phenomena.
+In this work, we focus on the identification of narrative levels in texts corresponding to stories that can be embedded (stories within stories) or otherwise coordinated within narratives. 
+Lacking sufficient pre-annotated training data, we explore a solution to deal with data scarcity that is common in machine learning: the automatic augmentation of an existing small data set of annotated samples with the help of data synthesis.
+We present a workflow for narrative level detection, that includes the operationalization of the task, a model and a data augmentation protocol for automatically generating narrative texts annotated with breaks between narrative levels.
+Our experiments suggest that narrative levels in long text constitute a challenging phenomenon for state-of-the-art NLP models, but generating training data synthetically does improve the prediction results considerably.
+%As phenomenon, it concerns both the content of a story as well as the way this content is told. 
+%we experiment with inducing training data with similar structural properties as texts with narrative levels. 
+%This data set is subjected to an off-the-shelf BERT model, and its performance evaluated on the induced texts as well as on a small corpus of proper narrative level annotations. 
+%Results show that the model is able to detect artificially created boundaries with a decent performance, but is performing substantially weaker on proper level annotations.
+%104 words, but 150-200 needed
+\\ 
+\newline 
+\Keywords{computational literary studies, narrative levels, training data induction} }
+
+\begin{document}
+
+\maketitleabstract
+
+\section{Introduction}
+\label{sec:introduction}
+
+%\sina{general comment: we might need to be bit more verbose on general aspects of annotation/resource creation in the DH and explain why narrative level detection is an interesting case here}
+%Storytelling is a fundamental human activity helping us to make sense of our world and our lives.
+
+
+The availability of annotated resources is still a major bottleneck for natural language processing research that is concerned with the analysis of long texts, such as book-length stories or narratives.   
+To comprehend stories, one must not only be able to recognize elements at the phrase or sentence level, e.g.,~entities, characters, direct speech, but also global structural elements, such as plot arcs or narrative levels. The latter (to be introduced more thoroughly below) commonly represents stories within a story, e.g., told by a character. % that commonly appear as separable stories or story parts within a story%\sina{REF??? do we have a rough estimate how common narrative levels are?}\nils{no, there is no reliable way of measuring that}
+%, see Figure \ref{fig:alice} for an example.\footnote{There is no reliable statistics about the prevalence of narrative levels `in the wild', because there is no way to automatically detect this phenomenon automatically. One can only argue that narrative levels are a common phenomenon as even popular novels do contain embedded stories, often in the form of flashbacks or flash forwards, or characters telling stories to other characters.} 
+The analysis of stories in terms of these structures is essential in research areas ranging from journalistic writing to storytelling in social media to interviews in the social sciences and literary fiction. 
+While corpora of raw texts covering these domains and types of narratives are available, annotated corpora of narratives are small and cover only some of the relevant phenomena:~While the ProppLearner corpus by \newcite{10.1093/llc/fqv067} contains annotations of plot elements in folktales, \newcite{bamman-etal-2020-annotated} have published a data set with annotated coreference chains on 2000-word samples of stories. Both corpora are potentially helpful for processing long narrative texts, but there is no way to combine them in a fruitful way.
+Hence, automatizing the process of understanding the global narrative structure of long texts/stories is still a major challenge for state-of-the-art natural language understanding systems, particularly because annotated data is scarce.
+
+This scarcity of annotated data, however, is not easy to fix, because the common annotation workflow (hire annotators, ask them to annotate according to guidelines) scales very badly to longer texts: i) Annotating longer texts makes the reading experience much more important. However, annotation tools are usually desktop or web applications that are not optimized for pleasurable reading. ii) Even if this problem would be overcome, actually achieving inter-subjective annotations  is still difficult, because annotations of narrative structures depend on reading concentration, memory and attention. Different annotators will read texts differently: Not in a single session, potentially interrupted etc. iii) In addition, popular texts and plots may already be known to annotators, possibly even unconsciously. Thus, it will be impossible to control whether annotators annotate purely based on the text or mix in their memory of a TV show they saw years ago in which one sub plot was similar or inspired on the current text. We therefore argue that producing annotations for longer texts is not just a question of funding and/or motivation, but that serious conceptual challenges need to be overcome.
+
+As an alternative, we therefore explore a common solution to deal with data scarcity in machine learning: The automatic increase of an existing small data set of annotated samples.
+Image data for training object recognition systems in computer vision, for instance, is very commonly augmented through simple automatic techniques for cropping, tilting and transforming a given set of labeled images and pairing the resulting, manipulated images with the label of their original \cite{howard2013some,szegedy2015going}. 
+Data augmentation has also been explored for some standard NLP tasks on sentences or short texts \cite{wang-etal-2018-switchout,wei-zou-2019-eda,liu-etal-2020-data}, where the augmentation technique typically manipulates a given word sequence on the token level, e.g.,~by deleting or swapping tokens, or back-translating the sequence.
+To the best of our knowledge, data augmentation has not yet been explored for tackling data scarcity issues in tasks dealing with longer texts or narratives. 
+
+
+%This paper discusses first attempts on the automatic detection of narrative levels in English narrative texts.
+%We base our study on a the recent shared task by \cite{Gius:2021tj} that aimed at establishing guidelines for the manual annotation of narrative levels, resulting in a small corpus of English narratives with ground-truth global segmentations into narrative levels, according to different guidelines that implement different theoretical approaches to narrative levels (e.g.,~the ontological level differences introduced by \newcite{ryan_1991} is only incorporated by guidelines IV and V, as \newcite[11]{Gius:2021tj} point out.
+%As the annotation process for narrative levels is costly and may require subtle adaptations for different assumptions and definitions on the notion of narrative level, we explore whether annotated training data in this domain can be automatically \textit{approximated} by synthesizing narratives segmented into different parts. 
+%We present a simple method for synthesizing segmented narratives which can be applied on any available corpus of raw narrative text. We evaluate the impact of the synthesized data on the automatic prediction of narrative levels, by fine-tuning a pre-trained transformer language model for predicting breaks in synthesized narratives and evaluating it on the ground-truth narrative level annotations from the aforementioned shared task.
+
+%training data of sufficient quality such that costly annotation can be avoided and widely occurring raw narratives be leveraged? -- is this the right question? 
+
+%\todo{switch to Arabian Nights}A prime example for a narrative with changes in narrative levels is \textit{Alice in Wonderland} by Carroll. Figure \ref{fig:alice} shows a passage with a change from the second narrative level -- the embedded story in which Alice finds herself in Wonderland -- back to the first narrative level -- the frame story in which the narrator tells the story of Alice waking up from her dream. 
+%This passage illustrates that \textit{detecting} changes in narrative levels can be a complex task, both for human annotators and systems, as excellent writers like Carroll may embed them very cleverly into the flow of the narrative and, as in this case, use smooth changes of levels within a sentence.
+%At the same time, the example suggests that \textit{generating} or at least approximately \textit{synthesizing} texts that contain narrative levels could be a more straightforward task that basically involves the juxtaposition, combination or shuffling of different parts of existing narratives. 
+%Thus, the main idea of this paper is to explore simple computational methods inspired by data augmentation to generate annotated, segmented narratives automatically composed from parts of different texts, which can, in turn, be used for training automatic detectors of narrative levels.
+
+
+
+We will first give some background on modeling narratives in general, narrative levels in particular as well as recent attempts at annotating them,  and discuss data augmentation techniques in Section~\ref{sec:background}. We then describe our approach to construct a workflow for narrative level detection, including the operationalization of the task, the model and the data synthesis Section~\ref{sec:workflow}. Section~\ref{sec:experiments} describes our experiments and Section~\ref{sec:discussion} discusses our findings. 
+
+\section{Background}
+\label{sec:background}
+
+\subsection{Modeling narrative structure}
+
+Structural properties of narrative texts have received little, but continuous attention in recent years:  \newcite{piper-etal-2021-narrative} provide a comprehensive overview, geared towards computational linguists. Focusing on longer discourses, \newcite{ouyang-mckeown-2014-towards} have proposed a system to detect discourse relations as in the Penn Discourse Treebank in narratives and \newcite{papalampidi-etal-2020-screenplay} have published work on the summarization of screenplays using narrative structures. 
+
+Narrative segments are discussed by \newcite{reiter-2015-towards} from an annotation perspective, and a system for the automatic detection of narrative segments, in this case defined as narrative scenes, 
+is described by \newcite{zehe-etal-2021-detecting}, using German dime novels as a corpus. The system achieves an F1-score of \num{0.24}. Chapters, another segmentation criterion, are targeted by \newcite{pethe-etal-2020-chapter}. They employ a BERT-based model and achieve an F1-score of \num{0.453} on full-length English novels. These two criteria for segmentation differ strongly: A scene, following the definition by \newcite{zehe-etal-2021-detecting}, is a textual segment with a continuity of narrated time, place, action and character constellation, comparable to a movie scene. Chapters are not necessarily homogeneous with respect to the plot: 
+They are not units of content, but are influenced by publishing and stylistic preferences, and used for organizing a text. Most strikingly, cliff hangers are a commonly appearing stylistic device that separate the plot, often used at chapter boundaries. Such a cliff hanger would probably not be annotated as a scene boundary.
+
+\subsection{Narrative Levels}
+Narrative levels are a third way of segmenting a text and a well documented phenomenon in the scholarly occupation with narratives \cite[43\,ff.]{Bal:1997aa}. The most crucial criterion for a narrative level is that a level forms a story on its own -- most often, this is a story told by a character of another story. Thus, narrative levels do not form a flat segmentation as scenes and chapters, but can be nested and thus hierarchically organized. 
+
+\begin{figure}
+\begin{quote}
+[\dots] \enquote{With joy and goodly gree,} answered Shahrazad, \enquote{if this pious and auspicious King permit me.} \enquote{Tell on,} quoth the King who chanced to be sleepless and restless and therefore was pleased with the prospect of hearing her story. So Shahrazad rejoiced; and thus, on the first night of the Thousand Nights and a Night, she began with the
+
+\subsubsection*{The Trader and the Jinni.}
+
+It is related, O auspicious King, that there was a merchant of the merchants who had much wealth, and business in various cities. [\dots]
+\end{quote}
+\caption{Excerpt of Arabian Nights, showing the beginning of an embedded narrative. Translation by Richard Francis Burton, published in 1885 and available via archive.org.}
+\label{fig:arabian-nights}
+\end{figure}
+
+One of the most well known examples is the book \textit{Arabian Nights} (often also referred to as \textit{One Thousand and One Nights}, originally written during the Islamic Golden Age), in which the female protagonist Shahrazad tells a story every night to avoid being executed by her husband. Because he is interested in the continuation of each story, he spares her life. Figure~\ref{fig:arabian-nights} shows the beginning of one embedded story as an example. A few characteristics of embedded narratives can be discerned directly: In the frame story in the beginning of the segment, Shahrazad and the king are speaking through direct speech, marked with quotation symbols. The embedded story itself, however, even though clearly narrated by Shahrazad, is not marked with quotation symbols, showing that it has a different status than the utterances before.
+
+\begin{figure}
+\begin{quote}
+%\enquote{Hold your tongue!} said the Queen, turning purple.
+%\enquote{I won't!} said Alice.
+\enquote{Off with her head!} the Queen shouted at the top of her voice. Nobody moved.\\
+\enquote{Who cares for you?} said Alice, (she had grown to her full size by this time.) \enquote{You're nothing but a pack of cards!}\\
+At this the whole pack rose up into the air, and came flying down upon her: she gave a little scream, half of fright and half of anger, and tried to beat them off, \textbf{[change of narrative level]} and found herself lying on the bank, with her head in the lap of her sister, who was gently brushing away some dead leaves that had fluttered down from the trees upon her face.
+\enquote{Wake up, Alice dear!} said her sister; \enquote{Why, what a long sleep you've had!}
+\enquote{Oh, I've had such a curious dream!} said Alice [\dots].
+\end{quote}
+\caption{Passage from Carroll's \textit{Alice in Wonderland}, Chapter XII, showing a narrative level change}
+\label{fig:alice}
+\end{figure}
+
+Often, embedded stories are narrated by a character of the frame story, as first described by \cite{Genette:1980aa}. There are, however, narrative levels that are differentiated in other ways: \cite{ryan_1991} introduced ontologically different story worlds as a marker for embedded narratives,  often in the context of dreams or otherwise different universes. One such example can be found in Figure~\ref{fig:alice}, showing a segment of the well known story \textit{Alice in Wonderland} by Lewis Carroll. The figure shows a passage with a change from the second narrative level -- the embedded story in which Alice finds herself in Wonderland -- back to the first narrative level: The frame story in which the narrator tells the story of Alice waking up from her dream. Interestingly, the narrative level change (marked in bold) takes place within a sentence, without any kind of formal or typographic marking.
+
+The complexities of narrative levels thus lie in the fact that they are related to both the \textit{how} of the narration (i.e.,~the textual representation of the story) as well as the \textit{what} of the narration (i.e.,~the contents of the story).
+
+\subsection{Systematic Analysis of Narrative Texts through Annotation}
+
+Given the many different structural and plot-wise ways of initiating level changes, it is not surprising that the annotation of narrative levels is a major challenge even for human annotators. This was demonstrated in the shared task SANTA \cite[Systematic Analysis of Narrative Texts through Annotation]{Gius2019aa,Gius:2021tj}. This shared task was aimed at developing guidelines for the manual annotation of narrative levels. Participants were asked to select their preferred theoretical basis for narrative levels (e.g., \newcite{ryan_1991} or \newcite{Genette:1980aa}) and develop guidelines that implement this theoretical framework. The guidelines were then evaluated in an annotation experiment with multiple student annotators who annotated in parallel. This shared task could attract seven participant teams from different disciplines (computational linguistics, linguistics, literary studies, digital humanities). The final version of each of these guidelines as well as a conceptual comparison of the guidelines can be found in \newcite{Gius:2021tj}.
+
+
+
+
+
+% Narrative levels are a ubiquitous phenomenon in narrative texts that is well-known to and easily recognized by readers with and without an academic interest in narrative structure. Within a story, several other stories can be told, either hierarchically, so that one story is embedded in another, or independently side by side in terms of its fiction, set in another fictional world.
+
+
+
+
+% While narrative levels can also be operationalized as a segmentation task, they are a distinct phenomenon from both scenes and chapters. 
+% Narrative levels and other plot units can continue across chapter boundaries as well as chapter boundaries and plot unit boundaries may coincide. However, a narrative level may or not be set in another chapter.
+
+% Given many different structural ways of initiating level changes, it is not surprising that the annotation of narrative levels is a major challenge even for human annotators. This was demonstrated in the shared task SANTA \cite[Systematic Analysis of Narrative Texts through Annotation]{Gius2019aa}, in which the organizers aimed to establish annotation guidelines for narrative levels based on various theoretical foundations from narratology. 
+% \sina{some concluding remark on the shared task saying that we will use the data?}
+
+
+% In some cases narrative levels are even a constitutional feature of a narration, as in the book \textit{Arabian Nights} where Scheherazade tells a story every night to avoid being executed. 
+% Another example, taken from Carrolls's novel \textit{Alice in Wonderland}, can be found in the appendix in Figure \ref{fig:alice}. 
+
+% Levels sometimes feature ontologically different worlds such as dreams or a different universe \cite{ryan_1991}, but often are stories within stories told by a character-narrator \cite{Genette:1980aa}. The complexities of narrative levels lie in the fact that they touch on both the \textit{how} of the narration (i.e.,~the textual representation of the story) as well as the \textit{what} of the narration (i.e.,~the contents of the story). Textually, narrative levels can take very different forms: Direct or indirect speech, single sentences or hundreds of pages long. Each narrative level can also contain other narrative levels, turning them into a hierarchy instead of a flat segmentation.
+
+
+
+
+
+
+\subsection{Data augmentation}
+
+Data augmentation is a widely used technique to boost the performance of data-hungry machine learning methods, which has found some attention in natural language processing (NLP). 
+Typical set-ups for data augmentation in NLP are applications where some initial annotated training data of texts paired with labels or, e.g., translations is given, such that $D_{train} = \{x_i,y_i\}$ \cite{kumar-etal-2020-data}. 
+Based on $D_{train}$, common augmentation protocols generate a synthetic version of the data $D_{syn} = \{\hat{x_i}, y_i\}$, where $\hat{x_i}$ is a perturbed version of some original $x_i \in D_{train}$ that carries the same label as the original data point.
+Procedures for obtaining the perturbed data points range from random word replacement and swapping operations \cite{wang-etal-2018-switchout,wei-zou-2019-eda} to more controlled, grammar-based or linguistically motivated augmentation methods \cite{jia-liang-2016-data,andreas2020good}.
+The general idea is to produce data that is ``good enough'' \cite{andreas2020good} for training a machine learning model despite its obviously lower quality as compared to carefully annotated data sets. 
+
+
+
+\section{Approach}
+\label{sec:workflow}
+
+The approach we want to explore in this paper follows the  data augmentation method described above in general, but differs in some details from the previous methods as we are interested in discovering the structure of narratives and need to generate data with text \textit{segmentations} rather than labels. Figure~\ref{fig:workflow} shows a visual representation of our approach, which will be explained textually below.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{lrec_2022_latex_template/workflow.ps}
+    \vspace{-1.5cm}
+    \caption{Text recombination for narrative level detection}
+    \label{fig:workflow}
+\end{figure}
+
+%In this section, we describe our approach to modeling narrative level detection, which is also illustrated in Figure \ref{fig:workflow}. 
+
+
+\subsection{Task definition}
+\label{subsec:task}
+
+The task of automatically detecting narrative levels in prose texts can be cast in different ways: Content-wise, a narrative level forms a unit on its own. It may have a unique and level-specific story world, which is populated with characters, locations and taking place at a certain time. As such, the task would be a \textbf{unitizing task}. In contrast to well known unitizing tasks such as named entity recognition (NER), the units in this case are much longer and can be discontinuous. Automatically detecting an entire narrative level as a unit would require machinery to cope with a potentially long discourse and untangle the level-forming narrative constituents (characters, locations, events, \dots). 
+
+As an alternative operationalization, we can operationalize the problem as a \textbf{segmentation task}. The goal is then to identify boundaries of narrative levels in the text. For segmentation, a set of candidate boundaries is often extracted, which are then subjected to a binary classification. 
+Since narrative levels can either stand independently side by side or have a hierarchical nature with subordinate and super-ordinate levels, the boundaries must be sub-classified to distinguish the beginning and end of a subordinate or super-ordinate level.
+As decisions are made on individual boundaries, such a segmentation approach cannot incorporate knowledge about the text as a whole: The fact that, for instance, a character no longer appears in a narrative level cannot be taken into account.
+
+From a pure output perspective, it does not matter which approach was chosen, as annotations of boundaries can be converted into units and vice versa. Technically, however, segmentation approaches are far more common and easier to implement than proper unitizing approaches, and even well known unitizing tasks such as NER are usually implemented as a segmentation problem (using the BIO scheme). We therefore follow the segmentation approach for our experiments.
+
+\subsection{Data Set Construction}
+\label{sec:data-set}
+
+%\sina{show a simple example of an assembled text}
+% hey Evelyn, ich sehe leider denn Chat nicht :-)
+% ich hab noch eine blaue Stelle im Abstract für dich
+
+In order to generate training data automatically, we use the ELTeC-eng \cite{eltec} corpus as source material and selected its 38 shortest Anglophone texts (between \num{14002} and \num{68607} words long). These were first randomly split into a training and test sub set~(70/30). From these, we generate 700 training and 300 test texts as follows: Each of the generated texts consists of multiple base texts, whose number has been sampled from a normal distribution with $\mu=3$ and $\sigma=1$. The generated texts thus mostly contain between one and five individual stories, although there are some outliers with more stories. As they have nothing in common content-wise, any story but the first can be considered an embedded story.\footnote{An obvious caveat at this point is that the transitions from one story to the next are not softened whatsoever. The stories are just concatenated.}
+
+We first experiment, how well these \enquote*{narrative level}-boundaries can be detected automatically and use the synthetic texts to select hyper parameters. With the best performing hyper parameters we then evaluate on the annotations created (and published) in the shared task SANTA \newcite{Gius:2021tj}, in which 13~texts were annotated according to the seven different guidelines described above. We evaluate on each guideline separately.
+
+\subsection{Break Prediction}
+
+For modeling narrative level detection as a text segmentation task, we exploit a standard state-of-the-art transformer language model, i.e.,~BERT \cite{devlin_bert_2019}.
+Neural language modeling frameworks can be widely and successfully used to fine-tune specific models for various NLP tasks, but have also proven useful in more analysis-oriented work aimed at evaluating and probing the linguistic representations and processing capacities \enquote{emerging} in large-scale language models \cite{belinkov2019}.
+Many of the existing probing tasks for language models were inspired by theoretical linguistic and psycholinguistic research \cite{belinkov2019} and are designed to test the model's knowledge of specific syntactic or semantic phenomena as, e.g.,~agreement \cite{linzen2016assessing} or negation \cite{ettinger2020bert}. 
+Here, most studies exploit BERT directly as a language model, i.e.,~as a predictor of words and word probabilities in context.
+
+Next to masked language modeling on the word level, BERT is also pre-trained on a sentence-level prediction task called next-sentence prediction (NSP, \newcite{devlin_bert_2019}).
+%[NSP,~][4174f.]{devlin_bert_2019}. 
+For NSP, the model is trained on pairs of sentences drawn from text and randomly paired sentences from different texts. Its task is to predict whether the pair is an actually occurring or a random sentence pair. \newcite{devlin_bert_2019} found that pre-training the model on NSP is an important prerequisite for obtaining high performance when fine-tuning on various inference tasks such as question answering or textual entailment.
+Later work on related transformer architectures has found that NSP pre-training does not improve or even impairs performance on certain downstream tasks, so that this pre-training task is sometimes removed from the training set-up in subsequent variants of the original BERT \cite{liu2019roberta}. 
+
+In this paper, we use the original BERT model with its NSP head to predict narrative level boundaries in text.
+Unfortunately, the exact data sampling procedure for training NSP is not described in \cite{devlin_bert_2019}, but we expect that NSP pre-training is similar to our text recombination protocol. 
+Therefore, as a first step, we directly evaluate a pre-trained BERT model for NSP on narrative level prediction.
+This allows us to test to what extent a narrative level boundary has a left and right context that is clearly different because the story being told has changed.
+Furthermore, we use our recombined text data to fine-tune BERT's NSP head for the task of detecting breaks in narrative texts.
+This allows to test to what extent the off-the-shelf language models might need to be fine-tuned to the domain of narratives.
+
+To sum up, in our experiments, we investigate whether (i) an off-the-shelf BERT model is able to detect break points in a narrative without being explicitly tuned to particular annotation categories and (ii) fine-tuning on synthetically recombined narrative text supports the off-the-shelf model to discover breaks between narrative levels in annotated narratives.
+
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Evaluation}
+\label{sec:operationalisation}
+
+
+An evaluation of level detection approaches can be performed on segment boundaries or units. We opt for a segmentation evaluation here, in line with our operationalization. Concretely, we use three metrics: Precision and recall are calculated as usual, counting only exactly matching character positions as true positives. A precision of 50 thus indicates that one half of the predicted boundaries are at correct locations. In addition, we employ boundary similarity \cite{fournier-2013-evaluating}, which is based on a boundary edit distance and distinguishes the edit operations addition/deletion (for missing or spurious boundaries), transposition (for boundaries that are \enquote*{close enough} to be moved) and substitution (for boundaries of the wrong type; not used in our case). We particularly look at the impact of the fine-tuning on the synthetic training data.
+
+
+
+\subsection{Data and Set-up}
+
+\begin{figure*}[th]
+\resizebox{\linewidth}{!}{
+\begin{tikzpicture}
+\coordinate (n10_54) at (0,0);
+\coordinate (n10_154) at (0,-1.1);
+\coordinate (n10_254) at (0,-2.2);
+\node at (n10_54)  [anchor=east,font=\Large] {$c=54$};
+\node at (n10_154) [anchor=east,font=\Large] {$c=154$};
+\node at (n10_254) [anchor=east,font=\Large] {$c=254$};
+\input{010_54.tikz}
+\input{010_154.tikz}
+\input{010_254.tikz}
+
+\coordinate (n173_54) at (0,-4);
+\coordinate (n173_154) at (0,-5.1);
+\coordinate (n173_254) at (0,-6.2);
+\node at (n173_54)  [anchor=east,font=\Large] {$c=54$};
+\node at (n173_154) [anchor=east,font=\Large] {$c=154$};
+\node at (n173_254) [anchor=east,font=\Large] {$c=254$};
+\input{173_54.tikz}
+\input{173_154.tikz}
+\input{173_254.tikz}
+
+
+\end{tikzpicture}
+}
+\caption{Predicted break probabilities in two randomly selected texts for different context windows. Red lines indicate true boundaries.}
+\label{fig:probabilities}
+\end{figure*}
+
+
+For the automatic prediction of narrative level boundaries, we make use of the pre-trained BERT model \cite{devlin-etal-2019-bert} in its base uncased variant as provided by the huggingface library\footnote{\url{https://huggingface.co/}}. 
+The texts are tokenized using BERT's pre-trained tokenizer, and we add a \texttt{CLS}-token to the beginning of the sequence, a \texttt{SEP}-token to separate the parts of the sequence, and a \texttt{SEP}-token at the end. 
+Each paragraph break is considered a candidate boundary, for which we take a fixed token window to the left and right of the candidate as input. We evaluate the window sizes 54, 154, and 254 tokens in both directions and find that the shortest window size yields the best results. If there are less tokens available, we pad the input sequences. The output of the pre-trained NSP head is transformed into the probability that this paragraph break is also a narrative level break.
+
+\subsection{Results}
+
+Figure \ref{fig:probabilities} shows the probabilities for the boundaries of two texts predicted by the model, with the true boundaries marked in red. We can see that enlarging the context window leads to a  lower number of predicted boundaries.
+It seems that positive indicators can be found rather locally, while a larger context offers indicators against a break. We also see a pretty clear distinction between boundaries and non-boundaries: Paragraphs before and after a predicted boundary have an almost-zero probability of being a boundary. 
+%Finally, we can see that larger context windows often lead to less predicted boundaries -- but not always. Some of the boundaries predicted with the 154-token-window are not at all predicted with the 54-token-window.
+Finally, we can see the aforementioned effect -- that larger context windows lead to fewer boundaries -- is not caused by simply predicting a subset of boundaries: Some of the boundaries predicted with the 154-token window are not predicted at all with the 54-token window. More systematic evaluation reveals that larger window sizes yield considerable less performance, we therefore focus on the 54-token-windows in all following experiments.
+
+\begin{table}
+\begin{tabular}{l
+  S[table-format=2.2]@{\hspace{0em}}S[table-format=2.1,table-space-text-pre = $\pm$]
+  S[table-format=2.2]@{\hspace{0em}}S[table-format=2.1,table-space-text-pre = $\pm$]
+  S[table-format=2.2]@{\hspace{0em}}S[table-format=2.1,table-space-text-pre = $\pm$]}
+\toprule
+FT & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall} & \multicolumn{2}{c}{Boundary sim.} \\
+\midrule
+No & 
+2.61 & {$\pm$} 1.8 & 55.41 & {$\pm$} 25.2 & 2.51 & {$\pm$} 1.8 \\
+Yes &
+32.39 & {$\pm$} 36.09 & 25.68 & {$\pm$} 27.12 & 19.20 & {$\pm$} 24.25 \\
+\bottomrule
+\end{tabular}
+\caption{Best evaluation results on artificially created boundaries after hyperparameter selection. Scores are averaged over 300 texts. $\pm$ designates the standard deviation, boundary similarity \cite{fournier-2013-evaluating} is calculated with a transposition window of $n_t=100$ characters. The table shows results without and with finetuning (FT) on a training data set.}
+\label{tbl:results-corpus1}
+\end{table}
+
+Table \ref{tbl:results-corpus1} shows quantitative evaluation scores on the synthetic test corpus with and without fine-tuning on the synthetic training corpus. As we can see, base performance (without fine-tuning) particularly achieves a low precision. Generally, fine-tuning on our synthetic data set yields a better performance, although neither precision nor recall are totally satisfying.
+
+
+\begin{table*}
+
+\centering
+\begin{tabular}{cS[table-format=2.2]S[table-format=2.2]@{\hspace{4em}}S[table-format=2.2]S[table-format=2.2]@{\hspace{4em}}S[table-format=-2.2]S[table-format=-2.2]}
+\toprule
+ & \multicolumn{2}{l}{Without finetuning} &  \multicolumn{2}{l}{With finetuning} & \multicolumn{2}{l}{Gain by finetuning} \\
+Guideline & {Precision} & {Recall} & {Precision} & {Recall} & {Precision} & {Recall} \\
+\midrule
+
+\multirow{2}{*}{1} & 14.36 & 9.37 & 25.64 & 5.89 & 11.28 & -3.48\\
+  & 14.36 & 14.27 & 21.79 & 7.72 & 7.44 & -6.54\\
+\midrule
+\multirow{2}{*}{2} & 11.41 & 6.75 & 17.95 & 4.59 & 6.54 & -2.17\\
+  & 7.56 & 4.58 & 14.10 & 5.22 & 6.54 & 0.64\\
+\midrule
+\multirow{2}{*}{4} & 12.27 & 11.08 & 33.33 & 10.76 & 21.06 & -0.32\\
+  & 7.69 & 7.13 & 10.26 & 2.98 & 2.56 & -4.15\\
+\midrule
+\multirow{2}{*}{5} & 12.18 & 9.79 & 17.95 & 7.40 & 5.77 & -2.39\\
+  & 15.13 & 9.70 & 10.26 & 2.75 & -4.87 & -6.95\\
+\midrule
+\multirow{2}{*}{6} & 15.69 & 14.43 & 23.85 & 14.47 & 8.15 & 0.04\\
+  & 18.36 & 9.03 & 21.79 & 3.90 & 3.44 & -5.13\\
+\midrule
+\multirow{2}{*}{7} & 7.69 & 19.23 & 17.95 & 13.46 & 10.26 & -5.77\\
+  & 7.69 & 19.23 & 17.95 & 12.09 & 10.26 & -7.14\\
+\midrule
+\multirow{2}{*}{8} & 8.08 & 11.54 & 17.95 & 9.10 & 9.87 & -2.44\\
+  & 9.87 & 13.41 & 15.38 & 5.40 & 5.51 & -8.01\\
+\bottomrule
+\end{tabular}
+\caption{Prediction results for narrative level boundaries without and with fine-tuning of the BERT model on synthetic data. The predictions are evaluated on the annotations by two different annotators for each guideline.}
+\label{tbl:santa-results}
+\end{table*}
+
+Table~\ref{tbl:santa-results} shows the precision and recall scores achieved on the ground truths created in the SANTA shared task \cite{Gius:2021tj}. Since the data set consists of two annotations (by two annotators) for each of the seven different guidelines, we give both results for each guideline.
+
+As expected, the performances show a slightly different pattern on the synthetic and ground truth data sets. Generally, the recall is lower on the latter. 
+Since the test data consists of real narrative level boundaries, the difference in content before and after the boundaries is potentially smaller than in the synthetic data, making this an expected result.
+We do see, however, that fine-tuning on synthetically created data has a positive effect on precision for almost all of the guidelines. The gain in precision almost always outweighs the loss in recall.
+
+Furthermore, results in Table~\ref{tbl:santa-results} show that the absolute performance of the narrative level detection and the relative increase achieved by finetuning on synthetically recombined texts depends to a considerable extent both on the underlying guideline and the annotator doing the annotation. 
+For instance, while the performance and the effect of finetuning is stable for both guideline 7 (i.e.\ precision increases from 7.69 to 17.95), annotations based on guideline 4 show a marked effect of finetuning for only one of the annotators (i.e.\ precision increases from 12.27 to 33.33). This is in line with our main argument, stated in Section~\ref{sec:introduction}, that serious conceptual challenges will need to be overcome to scale existing annotation workflows to global, structural aspects of long, narrative text. 
+
+\section{Discussion}
+\label{sec:discussion}
+
+
+
+% \sina{Workflow 1 -- Annotating real texts: this is the standard resource creation workflow in the digital humanities, a lot of progress in DH has been reached through developing proper annotation methodologies etc., but: a lot of areas in the DH are ultimately interested in complex phenomena that need to be analyzed in long text -- here, existing annotation methodologies do not scale, and it is unclear whether this can be solved in the future }\nils{ -> einleitung}
+
+Our experiments suggest that narrative levels in long text constitute a challenging phenomenon for state-of-the-art NLP models.
+Thus, despite the fact that BERT's next sentence prediction head is pre-trained on a supposedly similar task (distinguishing random from actually occurring sentence or paragraph pairs), we find that its off-the-shelf performance is very low in our setting, even on synthetically generated narrative breaks. 
+This supports observations made in other work suggesting that BERT's NSP head might not be stable \cite{liu2019roberta}. 
+Note, however, that \cite{pethe-etal-2020-chapter} achieve satisfactory performance with finetuning  BERT's NSP head on the task of detecting chapter boundaries.
+An obvious direction for future work is to investigate and, potentially, modify the pre-training protocols of recent transformer language models to improve their performance in representing and detecting various elements of narrative texts.
+This should also involve a more systematic exploration of the length of the narrative text's snippets as we, somewhat counterintuitively, found that the most robust model is the one that predicts breaks in narrative levels based on a context window of 54 words to the left and right of the break.
+
+Next to being a challenge for automatic text analysis, narrative levels point to some important limitations of  standard resource creation workflows in Digital Humanities.
+To date, these workflows heavily rely on  annotation that is done post hoc on complex text by expert annotators and typically involves several cycles of narrowing down the annotation guidelines, training annotators and further steps to achieve a high annotator agreement.
+The generative workflow we have explored in this paper might offer a complementary method for those phenomena where extensive manual annotation simply is too costly  and too difficult to set up in a rigorous way.
+In our workflow, no post-hoc annotation is needed, but we use an algorithm that produces an artificial, recombined text with annotations of breaks between narrative levels.
+We believe that this offers an interesting and different way to draw on expert knowledge in an ML pipeline for the Digital Humanities. In our setting, the expert's role is not to formulate her knowledge in terms of annotation decisions or feature design for the detection algorithm, but in terms of text generation rules for data augmentation protocols.
+Thus, human experts base the identification of narrative levels on properties such as changes of speaker, characters, time and/or ontological space in the fictional world. 
+In future work, we plan to look at formulating these regularities as generation rules leading to more plausible synthetic narratives that the ones we have obtained through simple text recombination in this work.
+
+%\sina{future work: systematically investigate the trade-offs: data quality, resource size, creation time
+%and cost ... our results suggest that a significant amount of training data is needed to achieve good performance}
+
+%\sina{future work: guideline selection? how do we plan to solve the issue that different definitions of narrative levels exist?}
+
+%\sina{future work: towards unitizing tasks - should be straightforward for data augmentation - but probably challenging from a modeling perspective}
+
+
+
+
+
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+Annotated reference data is both crucial for model development and thus large-scale text analysis, and at the same time very hard to produce in long texts and/or over long textual distances. As this is a common problem, a lot of research in machine learning has explored methods that avoid the need for annotated data in some way, e.g.,~semi-supervised/unsupervised learning, data augmentation, self training, \dots. Unsupervised learning has been used in the context of digital humanities applications in the form of standard language modeling pipelines (or word embeddings), but data augmentation has not been systematically explored. 
+
+In this paper, we have explored the use of data augmentation and synthesis to circumvent the data scarcity, focusing on the long-text problem of recognizing narrative level detection. Our results show that while narrative level detection is a hard task, generating training data synthetically does improve the prediction results considerably. An obvious next step is a more controlled synthesizing of data: In the current form, we have randomly combined texts with full prose stories, without any kind of transition or embedding. A more natural embedding of a narrative level might yield even better results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% We have presented first experiments on automatic detection of narrative level boundaries in texts. 
+% To this end, we have experimented with a simple mechanism to induce texts that feature similar structural properties as texts with narrative levels. 
+% Experiments show that a pre-trained BERT model is able to detect artificially created level boundaries with a decent performance. 
+% The fact that larger context windows yield a substantial improvement in precision, while recall remains stable, can be attributed to the nature of the boundaries: False positives may be marked with a strong temporal marker, which can be detected locally. 
+% The continuation of the plot without break is likely often marked by re-appearing characters or locations, and thus only detectable with a larger context window. The same model achieves much less performance on specifically manually annotated narrative levels, indicating that levels are also from a machine learning perspective a different phenomenon than breaks. 
+% In future work, we intend to explore more sophisticated ways of inducing training data automatically and to better control the text induction process (e.g., such that texts feature a homogeneous writing style).
+
+%\marginpar{gut approximierbar durch breaks, aber lernen Modelle wirklich globalere Strukturen?}
+
+
+
+
+
+
+
+% \nocite{*}
+\section{Bibliographical References}
+
+\bibliographystyle{lrec2022-bib}
+\bibliography{custom,anthology,lrec2022-example}
+
+\section{Language Ressource References}
+\bibliographystylelanguageresource{lrec2022-bib}
+\bibliographylanguageresource{languageresource}
+
+
+%\newpage
+
+
+% \section*{Appendix}
+% \label{sec:appendix}
+% \section{Narrative Level Boundary Example}
+% %One famous example for a narrative level change is the following passage from Carroll's \emph{Alice in Wonderland}.
+
+% %\if false
+% %\begin{figure}
+% %\begin{quote}
+% \enquote{Hold your tongue!} said the Queen, turning purple.
+% \enquote{I won't!} said Alice.
+% \enquote{Off with her head!} the Queen shouted at the top of her voice. Nobody moved.
+% \enquote{Who cares for you?} said Alice, (she had grown to her full size by this time.) \enquote{You're nothing but a pack of cards!}
+% At this the whole pack rose up into the air, and came flying down upon her: she gave a little scream, half of fright and half of anger, and tried to beat them off, \textbf{[change of narrative level]} and found herself lying on the bank, with her head in the lap of her sister, who was gently brushing away some dead leaves that had fluttered down from the trees upon her face.
+% \enquote{Wake up, Alice dear!} said her sister; \enquote{Why, what a long sleep you've had!}
+% \enquote{Oh, I've had such a curious dream!} said Alice [\dots].
+% %\end{quote}
+% \captionof{figure}{Passage from Carroll's \textit{Alice in Wonderland}, Chapter XII. The passage contains a narrative level change from the second narrative level  -- the embedded story in which Alice finds herself in Wonderland -- back to the first narrative level -- the frame story in which the narrator tells the story of Alice waking up from her wonderland dream. }
+% %\label{fig:alice}
+% \vfill
+
+
+%\section{Results on Shared Task Annotations}
+
+
+
+
+\if false
+\begin{table*}
+\centering
+\begin{tabular}{cccS[table-format=2.2]S[table-format=2.2]@{\hspace{4em}}S[table-format=2.2]S[table-format=2.2]@{\hspace{4em}}S[table-format=-2.2]S[table-format=-2.2]}
+\toprule
+\multicolumn{3}{l}{Finetuning} & \multicolumn{2}{l}{Without} &  \multicolumn{2}{l}{With} & \multicolumn{2}{l}{Gain} \\
+& C & GL & {Precision} & {Recall} & {Precision} & {Recall} & {Precision} & {Recall} \\
+\midrule
+\input{table}
+\end{tabular}
+\end{table*}
+\fi
+
+
+\if false
+\begin{tabular}{cccS[table-format=2.2]@{\hspace{0em}}S[table-format=2.2,table-space-text-pre = $\pm$]S[table-format=2.2]@{\hspace{0em}}S[table-format=2.2,table-space-text-pre = $\pm$]}
+\toprule
+& C & GL & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall} \\
+\midrule
+\multirow{21}{*}{\begin{sideways}Annotator 1\end{sideways}}
+& \multirow{7}{*}{\begin{sideways}54 tokens\end{sideways}}
+& 1 & 13.33 & {$\pm$} 19.99 & 8.70 & {$\pm$} 12.19 \\
+& & 2 & 10.60 & {$\pm$} 12.97 & 6.27 & {$\pm$} 9.73 \\
+& & 4 & 11.39 & {$\pm$} 15.33 & 10.29 & {$\pm$} 15.40 \\
+& & 5 & 11.31 & {$\pm$} 14.72 & 9.09 & {$\pm$} 12.05 \\
+& & 6 & 14.57 & {$\pm$} 21.64 & 13.40 & {$\pm$} 25.73 \\
+& & 7 & 7.14 & {$\pm$} 11.10 & 17.86 & {$\pm$} 23.96 \\
+& & 8 & 7.50 & {$\pm$} 11.10 & 10.71 & {$\pm$} 17.37 \\
+\cmidrule{2-7}
+& \multirow{7}{*}{\begin{sideways}154 tokens\end{sideways}}
+  & 1 & 13.52 & {$\pm$} 18.24 & 8.94 & {$\pm$} 13.06 \\
+& & 2 & 10.97 & {$\pm$} 13.08 & 5.55 & {$\pm$} 9.25 \\
+& & 4 & 18.96 & {$\pm$} 18.88 & 13.86 & {$\pm$} 15.50 \\
+& & 5 & 15.31 & {$\pm$} 16.92 & 11.52 & {$\pm$} 14.38 \\
+& & 6 & 25.95 & {$\pm$} 26.70 & 23.16 & {$\pm$} 30.23 \\
+& & 7 & 9.95 & {$\pm$} 12.20 & 21.43 & {$\pm$} 24.74 \\
+& & 8 & 12.16 & {$\pm$} 14.25 & 15.48 & {$\pm$} 20.38 \\
+\cmidrule{2-7}
+& \multirow{7}{*}{\begin{sideways}254 tokens\end{sideways}}
+  & 1 & 9.95 & {$\pm$} 15.43 & 6.08 & {$\pm$} 9.97 \\
+& & 2 & 9.18 & {$\pm$} 12.75 & 5.10 & {$\pm$} 9.36 \\
+& & 4 & 16.16 & {$\pm$} 26.36 & 9.69 & {$\pm$} 14.98 \\
+& & 5 & 11.73 & {$\pm$} 14.29 & 9.14 & {$\pm$} 13.29 \\
+& & 6 & 22.38 & {$\pm$} 26.59 & 17.80 & {$\pm$} 27.04 \\
+& & 7 & 11.73 & {$\pm$} 15.62 & 21.43 & {$\pm$} 24.74 \\
+& & 8 & 9.35 & {$\pm$} 13.23 & 11.31 & {$\pm$} 18.26 \\
+\midrule
+\multirow{21}{*}{\begin{sideways}Annotator 2\end{sideways}}
+& \multirow{7}{*}{\begin{sideways}54 tokens\end{sideways}}
+  & 1 & 13.33 & {$\pm$} 15.52 & 13.25 & {$\pm$} 16.08 \\
+& & 2 & 7.02 & {$\pm$} 13.75 & 4.25 & {$\pm$} 8.64 \\
+& & 4 & 7.14 & {$\pm$} 11.10 & 6.62 & {$\pm$} 10.78 \\
+& & 5 & 14.05 & {$\pm$} 19.86 & 9.01 & {$\pm$} 11.51 \\
+& & 6 & 17.05 & {$\pm$} 20.31 & 8.38 & {$\pm$} 11.65 \\
+& & 7 & 7.14 & {$\pm$} 11.10 & 17.86 & {$\pm$} 23.96 \\
+& & 8 & 9.17 & {$\pm$} 14.51 & 12.45 & {$\pm$} 18.96 \\
+\cmidrule{2-7}
+& \multirow{7}{*}{\begin{sideways}154 tokens\end{sideways}}
+  & 1 & 11.73 & {$\pm$} 15.62 & 10.63 & {$\pm$} 15.26 \\
+& & 2 & 7.74 & {$\pm$} 15.58 & 4.42 & {$\pm$} 9.43 \\
+& & 4 & 14.59 & {$\pm$} 16.82 & 10.43 & {$\pm$} 12.61 \\
+& & 5 & 14.54 & {$\pm$} 14.80 & 9.99 & {$\pm$} 11.88 \\
+& & 6 & 21.31 & {$\pm$} 26.40 & 8.87 & {$\pm$} 11.72 \\
+& & 7 & 8.16 & {$\pm$} 11.68 & 17.86 & {$\pm$} 23.96 \\
+& & 8 & 9.35 & {$\pm$} 14.66 & 12.45 & {$\pm$} 18.96 \\
+\cmidrule{2-7}
+& \multirow{7}{*}{\begin{sideways}254 tokens\end{sideways}}
+  & 1 & 15.31 & {$\pm$} 26.14 & 10.63 & {$\pm$} 15.26 \\
+& & 2 & 4.17 & {$\pm$} 10.33 & 2.04 & {$\pm$} 5.00 \\
+& & 4 & 8.16 & {$\pm$} 11.68 & 6.62 & {$\pm$} 10.78 \\
+& & 5 & 14.54 & {$\pm$} 14.80 & 9.39 & {$\pm$} 11.74 \\
+& & 6 & 15.36 & {$\pm$} 21.42 & 7.43 & {$\pm$} 11.60 \\
+& & 7 & 8.16 & {$\pm$} 11.68 & 17.86 & {$\pm$} 23.96 \\
+& & 8 & 5.78 & {$\pm$} 9.50 & 9.59 & {$\pm$} 17.56 \\
+\bottomrule
+\end{tabular}\vspace{0em}\captionof{table}{Evaluation results on SANTA corpus by \newcite{Gius2019aa}. $\protect\pm$ designates the standard deviation. Boundary similarity scores are zero, up to a transposition window of $n_t = 100$ characters.}
+%\label{tbl:results-corpus4}
+%\end{table}
+\fi
+
+
+
+
+\end{document}
