@@ -1,0 +1,161 @@
+% beamer settings
+\setbeamertemplate{navigation symbols}{}
+\usecolortheme{rose}
+\useoutertheme{infolines}
+\usefonttheme[onlymath]{serif}
+
+\makeatletter
+\AtBeginLecture{
+\beamer@tocsectionnumber=0
+\setcounter{section}{0}
+\part{\beamer@lecturename}
+\title{\beamer@lecturename}
+\subtitle{\theClass}
+\frame{\titlepage}
+
+}
+\makeatother
+
+
+% packages
+\RequirePackage{listings}
+\RequirePackage{multirow}
+\RequirePackage{rotating}
+\RequirePackage{outlines}
+\RequirePackage{booktabs}
+\RequirePackage{csquotes}
+\RequirePackage{siunitx}
+\RequirePackage{fontawesome}
+\RequirePackage[style=authoryear-comp,useprefix=false,date=year,backend=biber,maxcitenames=2,sorting=nyt,doi=true,url=true,maxbibnames=99]{biblatex}
+\RequirePackage{slidecite}
+\RequirePackage{wasysym}
+\RequirePackage{soul}
+\RequirePackage{qrcode}
+
+\RequirePackage{tikz}
+
+% tikz packages
+\usetikzlibrary{shapes.misc}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.symbols}
+\usetikzlibrary{shapes.callouts}
+\usetikzlibrary{shapes.arrows}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{decorations.markings}
+\usetikzlibrary{shapes.multipart} 
+\usetikzlibrary{matrix}
+\usetikzlibrary{intersections}
+\usetikzlibrary{calc}
+\usetikzlibrary{fit}
+\usetikzlibrary{3d}
+\usetikzlibrary{spy}
+\usetikzlibrary{math}
+\usetikzlibrary{positioning}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+% bib settings
+\DeclareFieldFormat{postnote}{#1}
+\renewcommand*{\nameyeardelim}{\addcomma\space}
+\renewcommand*{\multinamedelim}{/}
+\renewcommand*{\finalnamedelim}{/}
+\addbibresource{lit.bib}
+\addbibresource{/Users/reiterns/iCloudDrive/Documents/References.bib}
+\addbibresource{https://nilsreiter.de/publications/all.bib}
+\DefineBibliographyStrings{english}{%
+  sequens={f.},
+  sequentes={ff.}
+}
+
+\makeatletter
+\DeclareCiteCommand{\fullcite}
+  {\defcounter{maxnames}{\blx@maxbibnames}%
+    \usebibmacro{prenote}}
+  {\usedriver
+     {\DeclareNameAlias{sortname}{default}}
+     {\thefield{entrytype}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+\DeclareCiteCommand{\footfullcite}[\mkbibfootnote]
+  {\defcounter{maxnames}{\blx@maxbibnames}%
+    \usebibmacro{prenote}}
+  {\usedriver
+     {\DeclareNameAlias{sortname}{default}}
+     {\thefield{entrytype}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+\makeatother
+
+% listings
+\lstset{
+  basicstyle=\scriptsize\ttfamily,
+  keywordstyle=\color{blue},
+  commentstyle=\color{olive},
+  stringstyle=\color{red},
+  showstringspaces=false,
+  numbers=left, 
+  numberstyle=\tiny, 
+  numbersep=5pt,
+  frame=single,
+  xleftmargin=2em
+}
+
+
+% commands
+\newcommand\fullframeimageW[3]{
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+\node [at=(current page.center)] {
+	\includegraphics[keepaspectratio,width=\paperwidth]{#1}
+};
+\node [#3] at (current page.center) [font=\LARGE,fill=white] { #2 };
+\end{tikzpicture}
+\end{frame}
+}
+
+\newcommand\fullframeimageH[3]{
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+\node [at=(current page.center)] {
+	\includegraphics[keepaspectratio,height=\paperheight]{#1}
+};
+\node [#3] at (current page.center) [font=\LARGE,fill=white] { #2 };
+\end{tikzpicture}
+\end{frame}
+}
+
+\newcommand\whiteboard[1]{
+\begin{frame}[plain]{#1}
+\begin{tikzpicture}[remember picture,overlay]
+\draw[step=1cm,gray!10,thin] (current page.north west) grid (current page.south east);
+\end{tikzpicture}
+\end{frame}
+}
+
+% coordinate system
+\newcommand{\cs}[4]{
+  \draw[very thin,color=gray] (0.01,0.01) grid ($(#1,#2)-(0.1,0.1)$);
+  \draw[->] (0,0) -- ($(#1,0)+(0.2,0)$) node[below] {#3};
+  \draw[->] (0,0) -- ($(0,#2)+(0,0.2)$) node[left] {#4};
+}
+
+
+\newcommand{\jm}{Jurafsky:2019aa}
+\newcommand{\ms}{Manning:1999aa}
+
+\newcommand\makedemoframe{\frame[plain]{\centering \LARGE demo}}
+
+\newcommand{\maketitleframe}{
+\frame[plain]{
+\maketitle 
+
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.south west) [anchor=south west] {\includegraphics[height=0.1\paperheight]{Logo_IDH.pdf}};
+\node at (current page.south east) [anchor=south east] {\includegraphics[height=0.141\paperheight]{Logo_CRETA.pdf}};
+\end{tikzpicture}
+}
+
+
+}
