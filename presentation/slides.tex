@@ -3,10 +3,14 @@
 \usepackage{nils-slides}
 \usepackage[english]{babel}
 
+\addbibresource{../paper/custom.bib}
+\sisetup{mode = match}
 \title[Narrative Level Detection]{Exploring Text Recombination for Automatic Narrative Level Detection}
 \subtitle{LREC 2022, Marseille}
 \author[]{\textbf{Nils Reiter}, Judith Sieker, Svenja Guhr, Evelyn Gius, Sina Zarrieß}
 \date[]{June 2022}
+
+\newcommand\circnum[1]{\raisebox{-.25\height}{\begin{tikzpicture}\node at (0,0) [fill,circle,text=white] {#1};\end{tikzpicture}}}
 
 \begin{document}
 
@@ -36,28 +40,144 @@ At this the whole pack rose up into the air, and came flying down upon her: she 
 \2 Extremely challenging annotation task, due its length
 \end{outline}
 
+\pause
+
 \begin{block}{Contents of this Talk}
 \begin{outline}
 \1 Establish method to induce training data,
-\1 Evaluate that it does help a model,
+\1 Evaluate that it does help a BERT-NSP-model,
 \1 Identify weaknesses and formulate, finally,
 \1 Future paths for level detection
 \end{outline}
 \end{block}
 \end{frame}
 
-\begin{frame}{Outlook: Shared Task on Narrative Level Detection}
-\begin{tikzpicture}[remember picture,overlay]
-\node at (current page.north east) [xshift=-1cm,yshift=-1cm,anchor=north,fill=red,font=\bfseries,text=white,rotate=-45,minimum width=5cm] {In Preparation};
-\end{tikzpicture}
-
-\renewcommand\outlineii{enumerate}
+\begin{frame}{Text Recombination}
 \begin{outline}
-\1 Shared Task with two tracks
-\2 Training data generation
-\3 Evaluation: Performance of a baseline BERT system
+\1 38 shortest English texts from ELTeC corpus \inlineslidecite{eltec}
+\2 \numrange{14002}{68607} words long
+\1 Split into training (\SI{70}{\percent}) and test (\SI{30}{\percent})
+\1 Concatenate $n$ randomly selected texts, with $n\sim N(\mu=3, \sigma=1)$
+\2 \dots and tag the point of concatenation
+\1 Remove duplicates
+\1[=] Synthetic stories dataset
 \end{outline}
+\pause
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.south east) [anchor=south east] {\includegraphics[width=0.45\paperwidth]{../paper/workflow.pdf}};
+\end{tikzpicture}
+\pause
+\begin{columns}
+\begin{column}{0.47\paperwidth}
+\begin{block}{Experiments}
+\setbeamertemplate{enumerate items}[circle]
+\renewcommand\outlinei{enumerate}
+\begin{outline}
+\1 Evaluation on synthetic stories
+\1 Evaluation on real level-annotated stories
+\end{outline}
+\end{block}  
+\end{column}
+\begin{column}{0.4\paperwidth}
+  
+\end{column}
+\end{columns}
 \end{frame}
+
+\begin{frame}{Experiment 1: Evaluation on Synthetic Stories}
+\begin{outline}
+\1 Original BERT model provided by HuggingFace \inlineslidecite{devlin_bert_2019}
+\1 Use next sentence prediction head for level boundary detection
+\1 Evaluation with and without fine-tuning on synthetic data set
+\1 Metrics: precision, recall, boundary similarity \inlineslidecite{Fournier:2013aa}
+\2 Averaged over test set (\num{300} texts)
+\2 Boundary similarity: Transposition window of $n_t=100$ characters
+\1 \alert{Welches Kontextfenster haben wir hier genommen?}
+\end{outline}
+\pause
+\begin{table}
+  
+\begin{tabular}{l
+  S[table-format=2.2]@{\hspace{0em}}S[table-format=2.1,table-space-text-pre = $\pm$]
+  S[table-format=2.2]@{\hspace{0em}}S[table-format=2.1,table-space-text-pre = $\pm$]
+  S[table-format=2.2]@{\hspace{0em}}S[table-format=2.1,table-space-text-pre = $\pm$]}
+\toprule
+Finetuning & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall} & \multicolumn{2}{c}{Boundary sim.} \\
+\midrule
+No & 
+2.61 & {$\pm$} 1.8 & 55.41 & {$\pm$} 25.2 & 2.51 & {$\pm$} 1.8 \\
+Yes &
+32.39 & {$\pm$} 36.09 & 25.68 & {$\pm$} 27.12 & 19.20 & {$\pm$} 24.25 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{Experiment 2: Evaluation on Real Level-Annotated Stories}
+\begin{outline}
+\1 Re-use of guideline development shared task
+\1 Evalation on all annotations for all guidelines
+\2 I.e.: 2 annotators for each of 7 guidelines
+\1 With and without fine-tuning
+\end{outline}
+
+\begin{table}
+\small
+\begin{tabular}{lS[table-format=2.2]S[table-format=2.2]@{\hspace{4em}}S[table-format=2.2]S[table-format=2.2]@{\hspace{4em}}S[table-format=-2.2]S[table-format=-2.2]}
+\toprule
+ & \multicolumn{2}{l}{Without finetuning} &  \multicolumn{2}{l}{With finetuning} & \multicolumn{2}{l}{Gain by finetuning} \\
+Guideline & {Precision} & {Recall} & {Precision} & {Recall} & {Precision} & {Recall} \\
+\midrule
+
+% \multirow{2}{*}{1} & 14.36 & 9.37 & 25.64 & 5.89 & 11.28 & -3.48\\
+%   & 14.36 & 14.27 & 21.79 & 7.72 & 7.44 & -6.54\\
+% \midrule
+% \multirow{2}{*}{2} & 11.41 & 6.75 & 17.95 & 4.59 & 6.54 & -2.17\\
+%   & 7.56 & 4.58 & 14.10 & 5.22 & 6.54 & 0.64\\
+% \midrule
+\multirow{2}{*}{\textcite{Ketschik2021On}} & 12.27 & 11.08 & 33.33 & 10.76 & 21.06 & -0.32\\
+  & 7.69 & 7.13 & 10.26 & 2.98 & 2.56 & -4.15\\
+\midrule
+\multirow{2}{*}{\textcite{Barth2021Annotation}} & 12.18 & 9.79 & 17.95 & 7.40 & 5.77 & -2.39\\
+  & 15.13 & 9.70 & 10.26 & 2.75 & -4.87 & -6.95\\
+%\midrule
+% \multirow{2}{*}{6} & 15.69 & 14.43 & 23.85 & 14.47 & 8.15 & 0.04\\
+%   & 18.36 & 9.03 & 21.79 & 3.90 & 3.44 & -5.13\\
+% \midrule
+% \multirow{2}{*}{7} & 7.69 & 19.23 & 17.95 & 13.46 & 10.26 & -5.77\\
+%   & 7.69 & 19.23 & 17.95 & 12.09 & 10.26 & -7.14\\
+% \midrule
+% \multirow{2}{*}{8} & 8.08 & 11.54 & 17.95 & 9.10 & 9.87 & -2.44\\
+%   & 9.87 & 13.41 & 15.38 & 5.40 & 5.51 & -8.01\\
+\bottomrule
+\end{tabular}
+\caption{Prediction results for narrative level boundaries (see paper for full table)}
+\end{table}
+\end{frame}
+
+\begin{frame}{Conclusions and Outlook}
+\begin{outline}
+\1 Annotating narrative levels classically does not scale
+\2 Mostly because it's a non-local phenomenon
+\1 Even crudely generating training data helps
+\end{outline}
+\pause
+\begin{block}{Outlook: Two-Track Shared Task on Narrative Level Detection}
+\renewcommand\outlinei{enumerate}
+\begin{outline}
+\1 Training data generation
+\2 Interdisciplinary audience: Computational (literary studies|linguistics), digital humanities, \dots 
+\2 Better combinations by optimizing boundary contexts
+\2 Evaluation: Performance of a baseline BERT system
+\1 Automatic detection
+\2 Computational linguistics audience
+\2 Long text phenomenon
+\2 Evaluation: Performance on properly annotated gold data
+\end{outline}
+\end{block}
+
+\end{frame}
+
 
 \begin{frame}[plain]
 \begin{tikzpicture}[remember picture,overlay]
@@ -67,6 +187,39 @@ At this the whole pack rose up into the air, and came flying down upon her: she 
 \end{frame}
 
 \appendix
+
+\begin{frame}{Context Window}
+\begin{figure}
+\resizebox{\linewidth}{!}{
+\begin{tikzpicture}
+\coordinate (n10_54) at (0,0);
+\coordinate (n10_154) at (0,-1.1);
+\coordinate (n10_254) at (0,-2.2);
+\node at (n10_54)  [anchor=east,font=\Large] {$c=54$};
+\node at (n10_154) [anchor=east,font=\Large] {$c=154$};
+\node at (n10_254) [anchor=east,font=\Large] {$c=254$};
+\input{../paper/010_54.tikz}
+\input{../paper/010_154.tikz}
+\input{../paper/010_254.tikz}
+
+\coordinate (n173_54) at (0,-4);
+\coordinate (n173_154) at (0,-5.1);
+\coordinate (n173_254) at (0,-6.2);
+\node at (n173_54)  [anchor=east,font=\Large] {$c=54$};
+\node at (n173_154) [anchor=east,font=\Large] {$c=154$};
+\node at (n173_254) [anchor=east,font=\Large] {$c=254$};
+\input{../paper/173_54.tikz}
+\input{../paper/173_154.tikz}
+\input{../paper/173_254.tikz}
+
+
+\end{tikzpicture}
+}
+\caption{Predicted break probabilities in two randomly selected texts for different context windows. Red lines indicate true boundaries.}
+\label{fig:probabilities}
+\end{figure}
+  
+\end{frame}
 
 \begin{frame}[allowframebreaks]{References}
 \printbibliography
