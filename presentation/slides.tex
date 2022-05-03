@@ -1,3 +1,4 @@
+%!TEX TS-program = xelatex
 \documentclass[aspectratio=169]{beamer}
 
 \usepackage{nils-slides}
@@ -7,7 +8,8 @@
 \sisetup{mode = match}
 \title[Narrative Level Detection]{Exploring Text Recombination for Automatic Narrative Level Detection}
 \subtitle{LREC 2022, Marseille}
-\author[]{\textbf{Nils Reiter}, Judith Sieker, Svenja Guhr, Evelyn Gius, Sina Zarrieß}
+\author[]{\textbf{Nils Reiter}$^\clubsuit$, Judith Sieker$^\diamondsuit$, Svenja Guhr$^\spadesuit$, Evelyn Gius$^\spadesuit$, Sina Zarrieß$^\diamondsuit$}
+\institute{Universities of Cologne$^\clubsuit$, Bielefeld$^\diamondsuit$, Darmstadt$^\spadesuit$}
 \date[]{June 2022}
 
 \newcommand\circnum[1]{\raisebox{-.25\height}{\begin{tikzpicture}\node at (0,0) [fill,circle,text=white] {#1};\end{tikzpicture}}}
@@ -19,21 +21,28 @@
 \begin{frame}{Narrative Level}
 \begin{outline}
 \1 Embedded stories, told by characters of a story
-\1 Widely used phenomenon in narrative texts
+\1 Widely used phenomenon in narrative texts (and other media)
 \1 Crucial for content-driven narrative analysis
 \1 Important for subsequent NLP tasks (e.g., coreference resolution)
 \end{outline}
 \pause
 \begin{example}
 \begin{quote}
-At this the whole pack rose up into the air, and came flying down upon her: she gave a little scream, half of fright and half of anger, and tried to beat them off, \faExclamationTriangle{} and found herself lying on the bank, with her head in the lap of her sister, who was gently brushing away some dead leaves that had fluttered down from the trees upon her face.
-\end{quote}
+[\dots] \enquote{Tell on,} quoth the King who chanced to be sleepless and restless and therefore was pleased with the prospect of hearing her story. So Shahrazad rejoiced; and thus, on the first night of the Thousand Nights and a Night, she began with the
+
+\noindent\textbf{Tale of the Trader and the Jinni.} \faArrowCircleDown\\
+\noindent It is related, O auspicious King, that there was a merchant of the merchants who had much wealth [\dots]
+\end{quote}\hfill Arabian Nights, archive.org
+
+% \begin{quote}
+% At this the whole pack rose up into the air, and came flying down upon her: she gave a little scream, half of fright and half of anger, and tried to beat them off, \faExclamationTriangle{} and found herself lying on the bank, with her head in the lap of her sister, who was gently brushing away some dead leaves that had fluttered down from the trees upon her face.
+% \end{quote}
 \end{example}
 \end{frame}
 
 \begin{frame}{Annotating Narrative Levels}
 \begin{outline}
-\1 No available corpus with annotations
+\1 No annotated corpora are available
 \1 Shared task on guideline development \inlineslidecite{Gius2021ab}
 \2 Task: Establish a guideline for annotating levels in English texts
 \2 Evaluation by looking at theory, applicability (IAA), usefulness
@@ -116,7 +125,7 @@ Yes &
 \begin{frame}{Experiment 2: Evaluation on Real Level-Annotated Stories}
 \begin{outline}
 \1 Re-use of guideline development shared task
-\1 Evalation on all annotations for all guidelines
+\1 Evaluation on all annotations for all guidelines
 \2 I.e.: 2 annotators for each of 7 guidelines
 \1 With and without fine-tuning
 \end{outline}
