@@ -102,7 +102,7 @@ The analysis of stories in terms of these structures is essential in research ar
 While corpora of raw texts covering these domains and types of narratives are available, annotated corpora of narratives are small and cover only some of the relevant phenomena:~While the ProppLearner corpus by \newcite{10.1093/llc/fqv067} contains annotations of plot elements in folktales, \newcite{bamman-etal-2020-annotated} have published a data set with annotated coreference chains on 2000-word samples of stories. Both corpora are potentially helpful for processing long narrative texts, but there is no way to combine them in a fruitful way.
 Hence, automatizing the process of understanding the global narrative structure of long texts/stories is still a major challenge for state-of-the-art natural language understanding systems, particularly because annotated data is scarce.
 
-This scarcity of annotated data, however, is not easy to fix, because the common annotation workflow (hire annotators, ask them to annotate according to guidelines) scales very badly to longer texts: i) Annotating longer texts makes the reading experience much more important. However, annotation tools are usually desktop or web applications that are not optimized for pleasurable reading. ii) Even if this problem would be overcome, actually achieving inter-subjective annotations is still difficult, because annotations of narrative structures depend on reading concentration, memory and attention. While this is certainly true for all annotation tasks, linguistic tasks such as syntactic annotation allow a `mental reset' after each sentence. Annotating narrative levels requires attention over hundreds of pages of texts. Even reading the text in question can often not done in a single session, but is spread over days.
+This scarcity of annotated data, however, is not easy to fix, because the common annotation workflow (hire annotators, ask them to annotate according to guidelines) scales very badly to longer texts: i) Annotating longer texts makes the reading experience much more important, as the annotation density (i.e., raw number of annotations per token) is much lower compared to established annotations tasks in NLP. However, annotation tools are usually desktop or web applications that are not optimized for pleasurable reading, which will impact annotation quality negatively. ii) Even if this problem would be overcome, actually achieving inter-subjective annotations is still difficult, because annotations of narrative structures depend on reading concentration, memory and attention. While this is certainly true for all annotation tasks, linguistic tasks such as syntactic annotation allow a `mental reset' after each sentence. Annotating narrative levels requires attention over hundreds of pages of texts. Even reading the text in question can often not done in a single session, but is spread over days.
 iii) In addition, popular texts and plots may already be known to annotators, possibly even unconsciously. Thus, it will be impossible to control whether annotators annotate purely based on the text or mix in their memory of a TV show they saw years ago in which one sub plot was similar or inspired on the current text. We therefore argue that producing annotations for longer texts is not just a question of funding and/or motivation, but that serious conceptual challenges need to be overcome.
 
 As an alternative, we therefore explore a common solution to deal with data scarcity in machine learning: the automatic increase of an existing small data set of annotated samples.
@@ -145,7 +145,7 @@ Narrative levels are a third way of segmenting a text and a well documented phen
 \begin{quote}
 [\dots] \enquote{With joy and goodly gree,} answered Shahrazad, \enquote{if this pious and auspicious King permit me.} \enquote{Tell on,} quoth the King who chanced to be sleepless and restless and therefore was pleased with the prospect of hearing her story. So Shahrazad rejoiced; and thus, on the first night of the Thousand Nights and a Night, she began with the
 
-\noindent$\ddagger$\textbf{The Trader and the Jinni.}\\
+\noindent$\ddagger$\textbf{Tale of The Trader and the Jinni.}\\
 \noindent It is related, O auspicious King, that there was a merchant of the merchants who had much wealth, and business in various cities. [\dots]
 \end{quote}
 \caption{Excerpt of Arabian Nights, showing the beginning of an embedded narrative ($\ddagger$). Translation by Richard Francis Burton, published in 1885 and available via archive.org.}
@@ -219,8 +219,7 @@ The approach we want to explore in this paper follows the  data augmentation met
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\textwidth]{workflow.ps}
-    \vspace{-1.5cm}
+    \includegraphics[width=\linewidth]{workflow.pdf}
     \caption{Text recombination for narrative level detection}
     \label{fig:workflow}
 \end{figure}
@@ -317,7 +316,7 @@ An evaluation of level detection approaches can be performed on segment boundari
 
 For the automatic prediction of narrative level boundaries, we make use of the pre-trained BERT model \cite{devlin-etal-2019-bert} in its base uncased variant as provided by the huggingface library\footnote{\url{https://huggingface.co/}}. 
 The texts are tokenized using BERT's pre-trained tokenizer, and we add a \texttt{CLS}-token to the beginning of the sequence, a \texttt{SEP}-token to separate the parts of the sequence, and a \texttt{SEP}-token at the end. 
-Each paragraph break is considered a candidate boundary, for which we take a fixed token window to the left and right of the candidate as input. We evaluate the window sizes 54, 154, and 254 tokens in both directions and find that the shortest window size yields the best results. If there are less tokens available, we pad the input sequences. The output of the pre-trained NSP head is transformed into the probability that this paragraph break is also a narrative level break.
+Each paragraph break is considered a candidate boundary, for which we take a fixed token window to the left and right of the candidate as input. We evaluate the window sizes 54, 154, and 254 tokens in both directions. The shortest window size yields the best results and is used for all subsequent experiments. If there are less tokens available, we pad the input sequences. The output of the pre-trained NSP head is transformed into the probability that this paragraph break is also a narrative level break.
 
 \subsection{Results}
 
